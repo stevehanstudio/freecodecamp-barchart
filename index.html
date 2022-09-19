@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>D3</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	  <script src="https://d3js.org/d3.v6.min.js"></script>
+	</head>
+  <body>
+    <div id="title">
+    </div>
+            <!-- <script src=
+"https://d3js.org/d3.v4.min.js">
+        </script>
+        <script src=
+"https://d3js.org/d3-dsv.v1.min.js">
+        </script>
+        <script src=
+"https://d3js.org/d3-fetch.v1.min.js">
+        </script> -->
+    <!-- <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/d3@7" charset="utf-8"></script> -->
+    <script>
+// import * as d3 from "https://cdn.skypack.dev/d3@7"
+
+const getDate = d => {
+	const strDate = new String(d)
+	const year = strDate.substr(0, 4)
+	const month = strDate.substr(5, 2) - 1
+	const day = strDate.substr(8, 2)
+	console.log(d, strDate, new Date(year, month, day))
+	return new Date(year, month, day)
+}
+
+async function draw() {
+	const data = await d3.json(
+		'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json')
+
+	console.log(data)
+	const { source_name } = data
+	const data_size = data.data.length
+	const dataset = data.data.map(d => d[1])
+	const dates = data.data.map(d => getDate(d[0]))
+
+	// console.log("size", data_size);
+	console.log(dataset)
+
+	const dimensions = {
+    width: 800,
+    height: 500,
+    margin: {
+      top: 50,
+      bottom: 50,
+      left: 50,
+      right: 50
+    }
+  }
+
+	dimensions.containerWidth = dimensions.width - dimensions.margin.left - dimensions.margin.right
+  dimensions.containerHeight = dimensions.height - dimensions.margin.top - dimensions.margin.bottom
+
+	// const h = 500,
+	// 	w = 700,
+	// 	padding = 5
+	// const minDate = d3.min(dates)
+	// const maxDate = d3.max(dates)
+
+	// console.log(minDate, maxDate)
+
+	const svg = d3.select('body')
+		.append('svg')
+		.attr('width', dimensions.width)
+		.attr('height', dimensions.height)
+
+	// console.log(svg)
+
+	const chart_container = svg.append('g')
+		.attr(
+			'transform',
+			`translate(${dimensions.margin.left}, ${dimensions.margin.top})`
+		)
+
+	d3.select('#title').append('h1').text(source_name)
+
+	const xScale = d3.scaleTime()
+		.domain(d3.extent(dates))
+		.range([0, dimensions.containerWidth])
+		.clamp(true)
+
+	const yScale = d3
+		.scaleLinear()
+		.domain(d3.extent(dataset))
+		.range([dimensions.containerHeight, 0])
+		// .nice()
+		.clamp(true)
+
+	chart_container.selectAll('rect')
+		.data(dataset)
+		// .enter()
+		.join('rect')
+		.attr('x', (d, i) => i*2)
+		.attr('y', (d, i) => dimensions.containerHeight - (d / 40))
+		.attr('width', 1)
+		.attr('height', (d, i) => d / 40 )
+		.attr('fill', 'blue')
+		.classed('bar', true)
+
+	const xAxis = d3.axisBottom(xScale)
+		// .ticks(5)
+
+	const xAxisGroup = chart_container.append('g')
+		.call(xAxis)
+		.style('transform', `translateY(${dimensions.containerHeight}px)`)
+		.classed('x-axis', true)
+
+	xAxisGroup.append('text')
+		.attr('x', dimensions.containerWidth / 2)
+		.attr('y', dimensions.margin.bottom - 10)
+		.attr('fill', 'black')
+		.text('Dates')
+		.classed('tick', true)
+
+	const yAxis = d3.axisLeft(yScale)
+
+	const yAxisGroup = chart_container
+		.append('g')
+		.call(yAxis)
+		.classed('y-axis', true)
+
+	yAxisGroup
+		.append('text')
+		.attr('x', -dimensions.containerHeight / 2)
+		.attr('y', -dimensions.margin.left + 15)
+		.attr('fill', 'black')
+		.html('Gross Domestic Product')
+		.style('transform', 'rotate(270deg)')
+		.style('text-anchor', 'middle')
+		.classed('tick', true)
+	}
+
+draw()
+    </script>
+  </body>
+</html>
+
+
+
